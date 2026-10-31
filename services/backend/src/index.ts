@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
+import path from 'path';
 // Load environment variables before initializing any other modules
-dotenv.config();
+dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 
 import http from 'http';
 import express from 'express';

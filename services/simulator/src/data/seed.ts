@@ -1,6 +1,3 @@
-import dotenv from 'dotenv';
-dotenv.config();
-
 import { supabase } from '../config/supabase';
 import { ALL_SIM_ROUTES, ALL_SIM_STOPS } from './routeData';
 
@@ -10,12 +7,26 @@ import { ALL_SIM_ROUTES, ALL_SIM_STOPS } from './routeData';
 async function seed(): Promise<void> {
   const isClearOnly = process.argv.includes('--clear');
   const now = new Date().toISOString();
+  const insertOrThrow = async (
+    table: string,
+    operation: PromiseLike<{ error: { message: string } | null }>
+  ): Promise<void> => {
+    const { error } = await operation;
+    if (error) {
+      throw new Error(`${table} insert failed: ${error.message}`);
+    }
+  };
 
   console.log('===========================================================');
   console.log('  Captain Campus Supabase Database Seeder');
   console.log(`  Target: ${process.env.SUPABASE_URL || 'Local / Configured Supabase'}`);
   console.log(`  Mode: ${isClearOnly ? 'CLEAR ONLY' : 'SEED (with reset)'}`);
   console.log('===========================================================\n');
+
+  const { error: connectionError } = await supabase.from('buses').select('bus_id').limit(1);
+  if (connectionError) {
+    throw new Error(`Supabase connection check failed: ${connectionError.message}`);
+  }
 
   console.log('Clearing existing tables in reverse dependency order...');
   await supabase.from('trips').delete().neq('trip_id', '_none_');
@@ -44,8 +55,7 @@ async function seed(): Promise<void> {
     longitude: s.longitude,
     created_at: now,
   }));
-  const { error: stopsErr } = await supabase.from('stops').insert(stopsData);
-  if (stopsErr) console.warn('Stops insert warning:', stopsErr.message);
+  await insertOrThrow('stops', supabase.from('stops').insert(stopsData));
 
   // 2. Seed Routes
   console.log(`Seeding ${ALL_SIM_ROUTES.length} routes...`);
@@ -60,13 +70,22 @@ async function seed(): Promise<void> {
     created_at: now,
     updated_at: now,
   }));
-  const { error: routesErr } = await supabase.from('routes').insert(routesData);
-  if (routesErr) console.warn('Routes insert warning:', routesErr.message);
+  await insertOrThrow('routes', supabase.from('routes').insert(routesData));
 
   // 2b. Seed Route Stops junction
-  const routeStopsData: any[] = [];
+  const routeStopsData: {
+    route_id: string;
+    stop_id: string;
+    sequence: number;
+    arrival_offset_minutes: number;
+  }[] = [];
   ALL_SIM_ROUTES.forEach((r) => {
+    const routeStopIds = new Set<string>();
     r.stops.forEach((s, idx) => {
+      if (routeStopIds.has(s.stopId)) {
+        return;
+      }
+      routeStopIds.add(s.stopId);
       routeStopsData.push({
         route_id: r.routeId,
         stop_id: s.stopId,
@@ -75,8 +94,7 @@ async function seed(): Promise<void> {
       });
     });
   });
-  const { error: rsErr } = await supabase.from('route_stops').insert(routeStopsData);
-  if (rsErr) console.warn('Route stops insert warning:', rsErr.message);
+  await insertOrThrow('route_stops', supabase.from('route_stops').insert(routeStopsData));
 
   // 3. Seed Drivers
   console.log('Seeding 3 drivers...');
@@ -112,8 +130,7 @@ async function seed(): Promise<void> {
       updated_at: now,
     },
   ];
-  const { error: driverErr } = await supabase.from('drivers').insert(driversData);
-  if (driverErr) console.warn('Drivers insert warning:', driverErr.message);
+  await insertOrThrow('drivers', supabase.from('drivers').insert(driversData));
 
   // 4. Seed GPS Devices
   console.log('Seeding 4 GPS devices...');
@@ -123,8 +140,7 @@ async function seed(): Promise<void> {
     { device_id: 'SIM-DEVICE-03', bus_id: 'bus-cc-03', status: 'online', created_at: now, updated_at: now },
     { device_id: 'SIM-DEVICE-04', bus_id: 'bus-cc-04', status: 'online', created_at: now, updated_at: now },
   ];
-  const { error: gpsErr } = await supabase.from('gps_devices').insert(gpsDevicesData);
-  if (gpsErr) console.warn('GPS devices insert warning:', gpsErr.message);
+  await insertOrThrow('gps_devices', supabase.from('gps_devices').insert(gpsDevicesData));
 
   // 5. Seed Buses
   console.log('Seeding 4 buses...');
@@ -179,8 +195,7 @@ async function seed(): Promise<void> {
       updated_at: now,
     },
   ];
-  const { error: busErr } = await supabase.from('buses').insert(busesData);
-  if (busErr) console.warn('Buses insert warning:', busErr.message);
+  await insertOrThrow('buses', supabase.from('buses').insert(busesData));
 
   // 6. Seed Trips
   console.log('Seeding 2 active trips...');
@@ -208,12 +223,11 @@ async function seed(): Promise<void> {
       updated_at: now,
     },
   ];
-  const { error: tripErr } = await supabase.from('trips').insert(tripsData);
-  if (tripErr) console.warn('Trips insert warning:', tripErr.message);
+  await insertOrThrow('trips', supabase.from('trips').insert(tripsData));
 
   // 7. Seed Sample Announcement
   console.log('Seeding 1 sample announcement...');
-  const { error: annErr } = await supabase.from('announcements').insert({
+  await insertOrThrow('announcements', supabase.from('announcements').insert({
     announcement_id: 'announcement-001',
     title: 'Route R3 Running Late Today',
     message: 'Express Route R3 is currently experiencing moderate campus traffic delays. Expect an additional 5-10 minute wait.',
@@ -221,8 +235,7 @@ async function seed(): Promise<void> {
     route_id: 'route-r3',
     created_by: 'admin-seed',
     created_at: now,
-  });
-  if (annErr) console.warn('Announcement insert warning:', annErr.message);
+  }));
 
   console.log('\n===========================================================');
   console.log('  Database Seeding Summary');

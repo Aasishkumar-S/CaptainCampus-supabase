@@ -40,9 +40,32 @@ npm run shared:build
 
 ---
 
-## 3. Firebase Project Setup
+## 3. Supabase Project Setup
 
-### 3.1 Create Firebase Project in Console
+The current web app and backend use Supabase for authentication and database access.
+
+1. In the Supabase dashboard, open the project and run [`services/backend/supabase/schema.sql`](../services/backend/supabase/schema.sql) in the SQL Editor.
+2. Enable Email/Password authentication under **Authentication -> Providers**.
+3. Copy the repository root `.env.example` to `.env` and set the shared values:
+   ```env
+   VITE_SUPABASE_URL=https://your-project-ref.supabase.co
+   VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_publishable_key
+   VITE_API_BASE_URL=http://localhost:4000/api/v1
+   ```
+4. Set `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY` in the same root `.env` file. The service-role key is server-only; never expose or commit it.
+5. Start the services:
+   ```bash
+   npm run backend:dev
+   npm run admin:dev
+   ```
+
+The database password is only for the Supabase dashboard or direct PostgreSQL connections. It is not an application API key and must not be put in `.env` files used by the browser.
+
+---
+
+## 4. Firebase Project Setup
+
+### 4.1 Create Firebase Project in Console
 1. Navigate to the [Firebase Console](https://console.firebase.google.com/).
 2. Click **Add project**, name it `captain-campus-dev` (or your campus name), and create the project.
 3. Once created, activate the following services from the left sidebar:
@@ -52,7 +75,7 @@ npm run shared:build
    - **Cloud Storage**: Click *Get Started* -> Choose default bucket options.
    - **Cloud Messaging (FCM)**: Enabled automatically under Project Settings -> Cloud Messaging.
 
-### 3.2 Service Account Key (for Node.js Backend)
+### 4.2 Service Account Key (for Node.js Backend)
 1. In Firebase Console, click the gear icon (Project Settings) -> **Service accounts**.
 2. Select **Node.js**, then click **Generate new private key**.
 3. Save the JSON file securely to your backend directory:
@@ -62,7 +85,7 @@ npm run shared:build
    ```
    *(Note: This file is ignored by `.gitignore` — never commit it to source control!)*
 
-### 3.3 Firebase CLI Authentication & Initialization
+### 4.3 Firebase CLI Authentication & Initialization
 In your terminal:
 ```bash
 # Log in to your Firebase account
@@ -78,11 +101,11 @@ firebase use <your-firebase-project-id>
 
 ---
 
-## 4. Google Maps Platform Setup
+## 5. Google Maps Platform Setup
 
 The platform uses Google Maps APIs across Web, Mobile, and Backend.
 
-### 4.1 Enable Google Cloud APIs
+### 5.1 Enable Google Cloud APIs
 1. Navigate to [Google Cloud Console](https://console.cloud.google.com/) under the same project.
 2. Go to **APIs & Services** -> **Library** and enable:
    - **Maps SDK for Android** (for Flutter student app)
@@ -90,7 +113,7 @@ The platform uses Google Maps APIs across Web, Mobile, and Backend.
    - **Routes API** (for backend route snapping and dynamic ETAs)
    - **Geocoding API** (for backend and admin stop address searches)
 
-### 4.2 Create Keys & Set Restrictions
+### 5.2 Create Keys & Set Restrictions
 
 Create 3 distinct API keys under **Credentials** to follow security best practices:
 
