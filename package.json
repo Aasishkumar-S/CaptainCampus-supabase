@@ -1,0 +1,30 @@
+{
+  "name": "captain-campus",
+  "version": "1.0.0",
+  "description": "Smart College Bus Tracking & Transportation Management System",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "services/*",
+    "apps/admin_web"
+  ],
+  "scripts": {
+    "backend:dev": "npm run dev --workspace=services/backend",
+    "admin:dev": "npm run dev --workspace=apps/admin_web",
+    "simulator:dev": "npm run dev --workspace=services/simulator",
+    "db:seed": "npm run seed --workspace=services/simulator",
+    "backend:build": "npm run build --workspace=services/backend",
+    "admin:build": "npm run build --workspace=apps/admin_web",
+    "simulator:build": "npm run build --workspace=services/simulator",
+    "shared:build": "npm run build --workspace=packages/shared_types",
+    "build:all": "npm run shared:build && npm run backend:build && npm run admin:build && npm run simulator:build",
+    "test": "npm run test --workspaces --if-present"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=9.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "@captain-campus/shared_types",
+  "version": "1.0.0",
+  "description": "Shared TypeScript type definitions for Captain Campus",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "clean": "rimraf dist"
+  },
+  "files": ["dist"],
+  "devDependencies": {
+    "rimraf": "^5.0.7",
+    "typescript": "^5.4.5"
+  }
+}

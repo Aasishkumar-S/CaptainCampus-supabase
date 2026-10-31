@@ -1,0 +1,53 @@
+# Node
+node_modules/
+dist/
+.env
+.env.local
+.env.production
+*.log
+
+# Flutter
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+build/
+*.iml
+.gradle/
+local.properties
+GeneratedPluginRegistrant.java
+
+# Firebase
+.firebase/
+firebase-debug.log
+database-debug.log
+firestore-debug.log
+ui-debug.log
+.firebaserc.local
+
+# Google Maps / Secrets
+google-services.json
+GoogleService-Info.plist
+*.keystore
+key.properties
+
+# IDE
+.idea/
+.vscode/settings.json
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Vite / React build
+apps/admin_web/dist/
+apps/admin_web/node_modules/
+
+# Coverage
+coverage/
+.nyc_output/
+
+# Test
+jest-results/
